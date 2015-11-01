@@ -38,9 +38,10 @@ IMGUR_CLIENT_ID = "d0dd7b21288e5ee"
 IMGUR_IMAGE_QUALITY = 0.7
 
 def imgur_export(image, drawable) :
-    temp_file = gettempdir() + '/gimp-imgur.jpg'
-    # Save file to temp directory since we want to capture unsaved files
-    pdb.file_jpeg_save(image, drawable, temp_file, temp_file, IMGUR_IMAGE_QUALITY, 0, 0, 0, "", 0, 0, 0, 0)
+    duplicate_image = image.duplicate()
+    compressed_layer = pdb.gimp_image_merge_visible_layers(duplicate_image, CLIP_TO_IMAGE)
+    temp_file = gettempdir() + '/gimp-imgur.png'
+    pdb.gimp_file_save(duplicate_image, compressed_layer, temp_file, '?')
     values = {
       'type' : 'base64',
       'image' : b64encode(open(temp_file, 'rb').read()),
@@ -65,7 +66,7 @@ def imgur_export(image, drawable) :
 
 register(
     "python_fu_imgur_export",
-    "Export",
+    "Export to Imgur.com",
     "Export to Imgur",
     "tehbmar",
     "tehbmar",
