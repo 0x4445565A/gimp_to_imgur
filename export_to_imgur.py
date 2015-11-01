@@ -33,23 +33,28 @@ import urllib2, urllib
 # See https://api.imgur.com for more information.
 IMGUR_CLIENT_ID = "d0dd7b21288e5ee"
 
-# Increase image quality for the upload.
-# Try not to knock Imgur off the internet.
-IMGUR_IMAGE_QUALITY = 0.7
-
-def imgur_export(image, drawable) :
-    duplicate_image = image.duplicate()
-    compressed_layer = pdb.gimp_image_merge_visible_layers(duplicate_image, CLIP_TO_IMAGE)
+def imgur_export(image, drawable):
+    # Temp file name.
     temp_file = gettempdir() + '/gimp-imgur.png'
+    # Creating duplicate image to prevent screwing up.
+    duplicate_image = image.duplicate()
+    # Compressing all of the layers.
+    compressed_layer = pdb.gimp_image_merge_visible_layers(duplicate_image, CLIP_TO_IMAGE)
+    # Saving the file to temp directory to be processed.
     pdb.gimp_file_save(duplicate_image, compressed_layer, temp_file, '?')
+    # Clearing up memory.
+    pdb.gimp_image_delete(duplicate_image)
+    # Post values for the API.
     values = {
       'type' : 'base64',
       'image' : b64encode(open(temp_file, 'rb').read()),
     }
+    # Authentication headers.
     headers = {
       'Authorization': 'Client-ID ' + IMGUR_CLIENT_ID,
       'Accept': 'application/json'
     }
+    # Send it out
     data = urllib.urlencode(values)
     req = urllib2.Request('https://api.imgur.com/3/image', data, headers)
     try:
